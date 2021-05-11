@@ -20,7 +20,6 @@ defmodule Checkout do
       case List.keyfind(specials, name, 0) do
         nil ->
           {{name, count}, price}
-
         {_, needed, value} ->
           {{name, rem(count, needed)}, value * div(count, needed) + price}
       end
@@ -30,9 +29,17 @@ defmodule Checkout do
   defp apply_regular(items, price_list) do
     Enum.sum(
       for {name, count} <- items do
-        {_, price} = List.keyfind(price_list, name, 0)
-        count * price
+        count * cost_of_item(price_list, name)
       end
     )
+  end
+
+  defp cost_of_item(price_list, name) do
+    case List.keyfind(price_list, name, 0) do
+      nil ->
+        raise RuntimeError, message: "unknown item: #{name}"
+      {_, price} ->
+        price
+    end
   end
 end
