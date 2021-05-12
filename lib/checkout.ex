@@ -1,8 +1,15 @@
 defmodule Checkout do
   def total(item_list, price_list, specials) do
+    if not valid_specials_list(specials) do
+      raise RuntimeError, message: "invalid list of specials"
+    end
     counts = count_seen(item_list)
     {counts_left, prices} = apply_specials(counts, specials)
     prices + apply_regular(counts_left, price_list)
+  end
+
+  defp valid_specials_list(list) do
+    Enum.all?(list, fn {_, x, _} -> x != 0 end)
   end
 
   defp count_seen(item_list) do
