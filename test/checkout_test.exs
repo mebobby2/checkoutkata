@@ -22,6 +22,18 @@ defmodule CheckoutTest do
     end
   end
 
+  property "list of items with duplicates" do
+    forall price_list <- dupe_list() do
+      false == Checkout.valid_price_list(price_list)
+    end
+  end
+
+  property "list of items with specials" do
+    forall special_list <- dupe_special_list() do
+      false == Checkout.valid_special_list(special_list)
+    end
+  end
+
   property "negative testing for expected results" do
     forall {items, prices, specials} <- lax_lists() do
       try do
@@ -29,6 +41,7 @@ defmodule CheckoutTest do
       rescue
         e in [RuntimeError] ->
           e.message == "invalid list of specials" ||
+          e.message == "invalid list of prices" ||
           String.starts_with?(e.message, "unknown item:")
         _ ->
           false
@@ -131,6 +144,18 @@ defmodule CheckoutTest do
 
     {list(maybe_known_item_gen), list({maybe_known_item_gen, integer()}),
      list({maybe_known_item_gen, integer(), integer()})}
+  end
+
+  defp dupe_list() do
+    let items <- non_empty(list(utf8())) do
+      vector(length(items) + 1, {elements(items), integer()})
+    end
+  end
+
+  defp dupe_special_list() do
+    let items <- non_empty(list(utf8())) do
+      vector(length(items) + 1, {elements(items), integer(), integer()})
+    end
   end
 
   ## Helpers
